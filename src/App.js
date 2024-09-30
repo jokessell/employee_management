@@ -1,25 +1,34 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import EmployeeTable from './components/EmployeeTable';
+import { Container, Typography } from '@mui/material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+
+// Create a custom theme (optional)
+const theme = createTheme({
+    palette: {
+        primary: {
+            main: '#1976d2', // Customize as needed
+        },
+        secondary: {
+            main: '#dc004e', // Customize as needed
+        },
+    },
+    // Add more theme customizations if necessary
+});
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <ThemeProvider theme={theme}>
+            <CssBaseline /> {/* Normalize styles across browsers */}
+            <Container>
+                <Typography variant="h3" align="center" gutterBottom>
+                    Employee Management System
+                </Typography>
+                <EmployeeTable />
+            </Container>
+        </ThemeProvider>
+    );
 }
 
 export default App;
