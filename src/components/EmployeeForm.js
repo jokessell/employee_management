@@ -41,8 +41,9 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                     await axiosInstance.put(`/employees/${employee.employeeId}`, values);
                     setSnackbarMessage('Employee updated successfully');
                 } else {
-                    // Create new employee
-                    await axiosInstance.post('/employees', values);
+                    // Create new employee, omit employeeId from values
+                    const { employeeId, ...newEmployeeData } = values; // Exclude employeeId from the payload
+                    await axiosInstance.post('/employees', newEmployeeData);
                     setSnackbarMessage('Employee added successfully');
                 }
                 setSnackbarOpen(true);
@@ -51,7 +52,7 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                 setError('An error occurred while submitting the form.');
                 console.error('Error submitting form:', error);
             }
-        },
+        }
     });
 
     useEffect(() => {
