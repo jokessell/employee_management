@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     TextField, Button, Slide, Typography, MenuItem
@@ -14,10 +14,9 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackbarMessage }) {
     const [error, setError] = useState(null);
 
-    // Define validation schema
+    // Define validation schema (removed email validation)
     const validationSchema = Yup.object({
         name: Yup.string().required('Name is required'),
-        email: Yup.string().email('Invalid email format').required('Email is required'),
         dateOfBirth: Yup.date().required('Date of Birth is required'),
         avatarUrl: Yup.string().url('Invalid URL format'),
         jobRole: Yup.string().required('Job Role is required'),
@@ -28,7 +27,6 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
         initialValues: {
             employeeId: employee ? employee.employeeId : null,
             name: employee ? employee.name : '',
-            email: employee ? employee.email : '', // Ensure email field is included
             dateOfBirth: employee ? employee.dateOfBirth : '',
             avatarUrl: employee ? employee.avatarUrl : '',
             jobRole: employee ? employee.jobRole : '',
@@ -56,13 +54,10 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
         },
     });
 
-    // Example useEffect usage
     useEffect(() => {
         if (employee) {
-            // Perform any side effects when editing an employee
             console.log(`Editing employee: ${employee.name}`);
         } else {
-            // Perform any side effects when adding a new employee
             console.log('Adding a new employee');
         }
     }, [employee]);
@@ -94,18 +89,6 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                         error={formik.touched.name && Boolean(formik.errors.name)}
                         helperText={formik.touched.name && formik.errors.name}
                         autoFocus
-                    />
-                    <TextField
-                        margin="dense"
-                        label="Email"
-                        name="email"
-                        type="email"
-                        fullWidth
-                        variant="outlined"
-                        value={formik.values.email}
-                        onChange={formik.handleChange}
-                        error={formik.touched.email && Boolean(formik.errors.email)}
-                        helperText={formik.touched.email && formik.errors.email}
                     />
                     <TextField
                         margin="dense"
