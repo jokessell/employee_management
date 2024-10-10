@@ -14,13 +14,28 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackbarMessage }) {
     const [error, setError] = useState(null);
 
-    // Define validation schema (removed email validation)
+    // Define validation schema with updated rules
     const validationSchema = Yup.object({
-        name: Yup.string().required('Name is required'),
-        dateOfBirth: Yup.date().required('Date of Birth is required'),
-        avatarUrl: Yup.string().url('Invalid URL format'),
-        jobRole: Yup.string().required('Job Role is required'),
-        gender: Yup.string(),
+        name: Yup.string()
+            .required('Name is required')
+            .test('is-full-name', 'Please enter both first and last name', value => {
+                return value && value.trim().split(' ').filter(n => n).length >= 2;
+            })
+            .matches(/^[A-Za-z]+(?: [A-Za-z]+)+$/, 'Name must contain at least two words with alphabetical characters'),
+        dateOfBirth: Yup.date()
+            .required('Date of Birth is required')
+            .max(new Date(), 'Date of Birth cannot be in the future'),
+        avatarUrl: Yup.string()
+            .required('Avatar URL is required')
+            .url('Invalid URL format'),
+        jobRole: Yup.string()
+            .required('Job Role is required')
+            .test('is-valid-jobrole', 'Job Role must be at least one word with at least 4 alphabetical characters', value => {
+                return value && /[A-Za-z]{4,}/.test(value);
+            }),
+        gender: Yup.string()
+            .required('Gender is required')
+            .oneOf(['Male', 'Female', 'Non-Binary'], 'Invalid gender selection'),
     });
 
     const formik = useFormik({
@@ -47,7 +62,7 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                     setSnackbarMessage('Employee added successfully');
                 }
                 setSnackbarOpen(true);
-                handleClose();
+                handleDialogClose();
             } catch (error) {
                 setError('An error occurred while submitting the form.');
                 console.error('Error submitting form:', error);
@@ -63,11 +78,17 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
         }
     }, [employee]);
 
+    // Reset error when dialog is closed
+    const handleDialogClose = () => {
+        setError(null);
+        handleClose();
+    };
+
     return (
         <Dialog
             open={open}
             TransitionComponent={Transition}
-            onClose={handleClose}
+            onClose={handleDialogClose}
             maxWidth="sm"
             fullWidth
         >
@@ -87,6 +108,7 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                         variant="outlined"
                         value={formik.values.name}
                         onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
                         error={formik.touched.name && Boolean(formik.errors.name)}
                         helperText={formik.touched.name && formik.errors.name}
                         autoFocus
@@ -100,6 +122,7 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                         variant="outlined"
                         value={formik.values.dateOfBirth}
                         onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
                         error={formik.touched.dateOfBirth && Boolean(formik.errors.dateOfBirth)}
                         helperText={formik.touched.dateOfBirth && formik.errors.dateOfBirth}
                         InputLabelProps={{
@@ -114,6 +137,7 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                         variant="outlined"
                         value={formik.values.avatarUrl}
                         onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
                         error={formik.touched.avatarUrl && Boolean(formik.errors.avatarUrl)}
                         helperText={formik.touched.avatarUrl && formik.errors.avatarUrl}
                     />
@@ -125,6 +149,7 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                         variant="outlined"
                         value={formik.values.jobRole}
                         onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
                         error={formik.touched.jobRole && Boolean(formik.errors.jobRole)}
                         helperText={formik.touched.jobRole && formik.errors.jobRole}
                     />
@@ -137,21 +162,23 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                         variant="outlined"
                         value={formik.values.gender}
                         onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
                         error={formik.touched.gender && Boolean(formik.errors.gender)}
                         helperText={formik.touched.gender && formik.errors.gender}
                     >
                         <MenuItem value=""><em>None</em></MenuItem>
                         <MenuItem value="Male">Male</MenuItem>
                         <MenuItem value="Female">Female</MenuItem>
-                        <MenuItem value="Other">Other</MenuItem>
+                        <MenuItem value="Non-Binary">Non-Binary</MenuItem>
                     </TextField>
 
                     <DialogActions>
-                        <Button onClick={handleClose}>Cancel</Button>
+                        <Button onClick={handleDialogClose}>Cancel</Button>
                         <Button
                             type="submit"
                             variant="contained"
                             color="primary"
+                            disabled={!(formik.isValid && formik.dirty)}
                         >
                             {employee ? 'Update' : 'Add'}
                         </Button>
