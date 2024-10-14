@@ -1,41 +1,50 @@
-import React, { useEffect, useState } from 'react';
+// src/components/EmployeeForm.js
+
+import React, { useState, useEffect } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
-    TextField, Button, Slide, Typography, MenuItem
+    TextField, Button, MenuItem, Typography, Avatar
 } from '@mui/material';
-import axiosInstance from '../api/axiosConfig';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-
-const Transition = React.forwardRef(function Transition(props, ref) {
-    return <Slide direction="up" ref={ref} {...props} />;
-});
+import axiosInstance from '../api/axiosConfig';
+import useStyles from '../styles/tableStyles'; // Import shared styles
 
 function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackbarMessage }) {
-    const [error, setError] = useState(null);
+    const classes = useStyles(); // Initialize styles
 
-    // Define validation schema with updated rules
+    // State for form fields
+    const [avatarPreview, setAvatarPreview] = useState('');
+
+    useEffect(() => {
+        if (employee && employee.avatarUrl) {
+            setAvatarPreview(employee.avatarUrl);
+        } else {
+            setAvatarPreview('');
+        }
+    }, [employee]);
+
     const validationSchema = Yup.object({
         name: Yup.string()
             .required('Name is required')
-            .test('is-full-name', 'Please enter both first and last name', value => {
-                return value && value.trim().split(' ').filter(n => n).length >= 2;
-            })
-            .matches(/^[A-Za-z]+(?: [A-Za-z]+)+$/, 'Name must contain at least two words with alphabetical characters'),
+            .max(255, 'Name cannot exceed 255 characters'),
         dateOfBirth: Yup.date()
-            .required('Date of Birth is required')
-            .max(new Date(), 'Date of Birth cannot be in the future'),
+            .required('Date of Birth is required'),
         avatarUrl: Yup.string()
-            .required('Avatar URL is required')
-            .url('Invalid URL format'),
+            .url('Invalid URL format')
+            .nullable(),
         jobRole: Yup.string()
             .required('Job Role is required')
-            .test('is-valid-jobrole', 'Job Role must be at least one word with at least 4 alphabetical characters', value => {
-                return value && /[A-Za-z]{4,}/.test(value);
-            }),
+            .max(255, 'Job Role cannot exceed 255 characters'),
         gender: Yup.string()
-            .required('Gender is required')
-            .oneOf(['Male', 'Female', 'Non-Binary'], 'Invalid gender selection'),
+            .required('Gender is required'),
+        age: Yup.number()
+            .required('Age is required')
+            .min(18, 'Age must be at least 18')
+            .max(100, 'Age must be less than or equal to 100'),
+        email: Yup.string()
+            .email('Invalid email format')
+            .required('Email is required'),
     });
 
     const formik = useFormik({
@@ -46,6 +55,8 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
             avatarUrl: employee ? employee.avatarUrl : '',
             jobRole: employee ? employee.jobRole : '',
             gender: employee ? employee.gender : '',
+            age: employee ? employee.age : '',
+            email: employee ? employee.email : '',
         },
         validationSchema: validationSchema,
         enableReinitialize: true,
@@ -56,48 +67,42 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                     await axiosInstance.put(`/employees/${employee.employeeId}`, values);
                     setSnackbarMessage('Employee updated successfully');
                 } else {
-                    // Create new employee, omit employeeId from values
-                    const { employeeId, ...newEmployeeData } = values; // Exclude employeeId from the payload
-                    await axiosInstance.post('/employees', newEmployeeData);
-                    setSnackbarMessage('Employee added successfully');
+                    // Create new employee
+                    await axiosInstance.post('/employees', values);
+                    setSnackbarMessage('Employee created successfully');
                 }
                 setSnackbarOpen(true);
-                handleDialogClose();
+                handleClose();
             } catch (error) {
-                setError('An error occurred while submitting the form.');
-                console.error('Error submitting form:', error);
+                console.error('Error submitting employee form:', error);
+                setSnackbarMessage('Failed to submit employee form');
+                setSnackbarOpen(true);
             }
         }
     });
 
-    useEffect(() => {
-        if (employee) {
-            console.log(`Editing employee: ${employee.name}`);
+    // Handler for avatar URL changes to preview the image
+    const handleAvatarChange = (e) => {
+        const url = e.target.value;
+        formik.handleChange(e);
+        if (url) {
+            setAvatarPreview(url);
         } else {
-            console.log('Adding a new employee');
+            setAvatarPreview('');
         }
-    }, [employee]);
-
-    // Reset error when dialog is closed
-    const handleDialogClose = () => {
-        setError(null);
-        handleClose();
     };
 
     return (
         <Dialog
             open={open}
-            TransitionComponent={Transition}
-            onClose={handleDialogClose}
+            onClose={handleClose}
             maxWidth="sm"
             fullWidth
         >
             <DialogTitle>{employee ? 'Edit Employee' : 'Add Employee'}</DialogTitle>
             <DialogContent>
-                {error && (
-                    <Typography color="error" variant="body2">
-                        {error}
-                    </Typography>
+                {formik.errors.general && (
+                    <Typography color="error">{formik.errors.general}</Typography>
                 )}
                 <form onSubmit={formik.handleSubmit}>
                     <TextField
@@ -105,13 +110,11 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                         label="Name"
                         name="name"
                         fullWidth
-                        variant="outlined"
                         value={formik.values.name}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.touched.name && Boolean(formik.errors.name)}
                         helperText={formik.touched.name && formik.errors.name}
-                        autoFocus
                     />
                     <TextField
                         margin="dense"
@@ -119,34 +122,36 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                         name="dateOfBirth"
                         type="date"
                         fullWidth
-                        variant="outlined"
+                        InputLabelProps={{
+                            shrink: true,
+                        }}
                         value={formik.values.dateOfBirth}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.touched.dateOfBirth && Boolean(formik.errors.dateOfBirth)}
                         helperText={formik.touched.dateOfBirth && formik.errors.dateOfBirth}
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
                     />
                     <TextField
                         margin="dense"
                         label="Avatar URL"
                         name="avatarUrl"
                         fullWidth
-                        variant="outlined"
                         value={formik.values.avatarUrl}
-                        onChange={formik.handleChange}
+                        onChange={handleAvatarChange}
                         onBlur={formik.handleBlur}
                         error={formik.touched.avatarUrl && Boolean(formik.errors.avatarUrl)}
                         helperText={formik.touched.avatarUrl && formik.errors.avatarUrl}
                     />
+                    {avatarPreview && (
+                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+                            <Avatar src={avatarPreview} alt="Avatar Preview" className={classes.avatar} />
+                        </div>
+                    )}
                     <TextField
                         margin="dense"
                         label="Job Role"
                         name="jobRole"
                         fullWidth
-                        variant="outlined"
                         value={formik.values.jobRole}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
@@ -159,32 +164,57 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                         name="gender"
                         select
                         fullWidth
-                        variant="outlined"
                         value={formik.values.gender}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.touched.gender && Boolean(formik.errors.gender)}
                         helperText={formik.touched.gender && formik.errors.gender}
                     >
-                        <MenuItem value=""><em>None</em></MenuItem>
+                        <MenuItem value="">
+                            <em>None</em>
+                        </MenuItem>
                         <MenuItem value="Male">Male</MenuItem>
                         <MenuItem value="Female">Female</MenuItem>
-                        <MenuItem value="Non-Binary">Non-Binary</MenuItem>
+                        <MenuItem value="Non-binary">Non-binary</MenuItem>
+                        <MenuItem value="Other">Other</MenuItem>
                     </TextField>
-
-                    <DialogActions>
-                        <Button onClick={handleDialogClose}>Cancel</Button>
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            disabled={!(formik.isValid && formik.dirty)}
-                        >
-                            {employee ? 'Update' : 'Add'}
-                        </Button>
-                    </DialogActions>
+                    <TextField
+                        margin="dense"
+                        label="Age"
+                        name="age"
+                        type="number"
+                        fullWidth
+                        value={formik.values.age}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.touched.age && Boolean(formik.errors.age)}
+                        helperText={formik.touched.age && formik.errors.age}
+                    />
+                    <TextField
+                        margin="dense"
+                        label="Email"
+                        name="email"
+                        type="email"
+                        fullWidth
+                        value={formik.values.email}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.touched.email && Boolean(formik.errors.email)}
+                        helperText={formik.touched.email && formik.errors.email}
+                    />
                 </form>
             </DialogContent>
+            <DialogActions>
+                <Button onClick={handleClose}>Cancel</Button>
+                <Button
+                    onClick={formik.handleSubmit}
+                    variant="contained"
+                    color="primary"
+                    disabled={!(formik.isValid && formik.dirty)}
+                >
+                    {employee ? 'Update' : 'Add'}
+                </Button>
+            </DialogActions>
         </Dialog>
     );
 }

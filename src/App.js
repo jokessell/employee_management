@@ -1,14 +1,19 @@
+// src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import EmployeeTable from './components/EmployeeTable';
-import GeneratedDataTable from './components/GeneratedDataTable'; // Import new component
+import GeneratedDataTable from './components/GeneratedDataTable';
+import ProjectTable from './components/ProjectTable';
+import NavigationBar from './components/NavigationBar'; // Import NavigationBar
 
 function App() {
     return (
         <Router>
+            <NavigationBar /> {/* Include the navigation bar */}
             <Routes>
-                <Route path="/" element={<EmployeeTable />} />  {/* Default Employee Management */}
-                <Route path="/generated-data" element={<GeneratedDataTable />} /> {/* New Table for Generated Data */}
+                <Route path="/" element={<EmployeeTable />} />
+                <Route path="/projects" element={<ProjectTable />} />
+                <Route path="/generated-data" element={<GeneratedDataTable />} />
             </Routes>
         </Router>
     );

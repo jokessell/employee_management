@@ -1,3 +1,5 @@
+// src/components/ConfirmDialog.js
+
 import React from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
@@ -8,7 +10,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="down" ref={ref} {...props} />;
 });
 
-function ConfirmDialog({ open, handleClose, employee }) {
+function ConfirmDialog({ open, handleClose, project }) { // Renamed prop to 'project' for clarity
     return (
         <Dialog
             open={open}
@@ -18,7 +20,7 @@ function ConfirmDialog({ open, handleClose, employee }) {
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogContent>
                 <Typography>
-                    Are you sure you want to delete <strong>{employee?.name}</strong>?
+                    Are you sure you want to delete <strong>{project?.name || project?.projectName}</strong>?
                 </Typography>
             </DialogContent>
             <DialogActions>
