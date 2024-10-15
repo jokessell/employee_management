@@ -1,3 +1,4 @@
+// src/styles/tableStyles.js
 import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles({
@@ -13,14 +14,13 @@ const useStyles = makeStyles({
         },
     },
     tableCell: {
-        padding: '8px 16px', // Reduced padding for a sleek look
-        fontSize: '0.95rem',
+        padding: '4px 8px', // Reduced padding for a sleek look
+        fontSize: '0.8rem',
     },
     tableContainer: {
-        borderRadius: '8px', // Rounded corners for the table container
+        borderRadius: '4px', // Rounded corners for the table container
     },
     addButton: {
-        marginBottom: '20px',
         backgroundColor: '#757575', // Gray button background
         color: '#fff',
         '&:hover': {
@@ -28,8 +28,8 @@ const useStyles = makeStyles({
         },
     },
     avatar: {
-        width: '40px',
-        height: '40px',
+        width: '30px',
+        height: '30px',
     },
 });
 

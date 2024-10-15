@@ -2,14 +2,8 @@
 import axiosInstance from './axiosConfig';
 
 // Get all projects with pagination
-export const getAllProjects = (page = 0, size = 10, sort = 'projectName,asc') => {
-    return axiosInstance.get('/projects', {
-        params: {
-            page,
-            size,
-            sort,
-        },
-    });
+export const getAllProjects = (params = {}) => {
+    return axiosInstance.get('/projects', { params });
 };
 
 // Create a new project

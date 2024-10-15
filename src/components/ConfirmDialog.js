@@ -2,34 +2,30 @@
 
 import React from 'react';
 import {
-    Dialog, DialogTitle, DialogContent, DialogActions,
-    Button, Typography, Slide
+    Dialog, DialogTitle, DialogContent, DialogContentText,
+    DialogActions, Button
 } from '@mui/material';
 
-const Transition = React.forwardRef(function Transition(props, ref) {
-    return <Slide direction="down" ref={ref} {...props} />;
-});
-
-function ConfirmDialog({ open, handleClose, project }) { // Renamed prop to 'project' for clarity
+function ConfirmDialog({ open, handleClose, item }) {
     return (
         <Dialog
             open={open}
-            TransitionComponent={Transition}
             onClose={() => handleClose(false)}
+            aria-labelledby="confirm-dialog-title"
+            aria-describedby="confirm-dialog-description"
         >
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle id="confirm-dialog-title">Confirm Deletion</DialogTitle>
             <DialogContent>
-                <Typography>
-                    Are you sure you want to delete <strong>{project?.name || project?.projectName}</strong>?
-                </Typography>
+                <DialogContentText id="confirm-dialog-description">
+                    Are you sure you want to delete "{item?.name || 'this item'}"?
+                    This action cannot be undone.
+                </DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => handleClose(false)}>Cancel</Button>
-                <Button
-                    onClick={() => handleClose(true)}
-                    variant="contained"
-                    color="error"
-                >
+                <Button onClick={() => handleClose(false)} color="primary">
+                    Cancel
+                </Button>
+                <Button onClick={() => handleClose(true)} color="secondary" autoFocus>
                     Delete
                 </Button>
             </DialogActions>

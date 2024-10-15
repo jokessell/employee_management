@@ -1,19 +1,12 @@
+// src/components/LoadingSpinner.js
 import React from 'react';
-import { CircularProgress, Box } from '@mui/material';
-import { motion } from 'framer-motion';
+import { CircularProgress } from '@mui/material';
 
 function LoadingSpinner() {
     return (
-        <Box display="flex" justifyContent="center" marginTop="40px">
-            <motion.div
-                initial={{rotate: 0}}
-                animate={{rotate: 360}}
-                transition={{duration: 1, repeat: Infinity, repeatType: "loop"}}
-            >
-                <CircularProgress/>
-            </motion.div>
-
-        </Box>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '50px' }}>
+            <CircularProgress />
+        </div>
     );
 }
 

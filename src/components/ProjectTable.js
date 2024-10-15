@@ -9,11 +9,13 @@ import {
 } from '@mui/material';
 import ProjectForm from './ProjectForm';
 import ConfirmDialog from './ConfirmDialog';
-import axiosInstance from '../api/axiosConfig';
+import { getAllProjects, deleteProject } from '../api/projectApi'; // Ensure deleteProject is imported
 import useStyles from '../styles/tableStyles'; // Import shared styles
 
 function ProjectTable() {
     const classes = useStyles(); // Initialize styles
+
+    // State variables
     const [projects, setProjects] = useState([]);
     const [openForm, setOpenForm] = useState(false);
     const [selectedProject, setSelectedProject] = useState(null);
@@ -24,19 +26,18 @@ function ProjectTable() {
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [employees, setEmployees] = useState([]);
+    const [totalElements, setTotalElements] = useState(0); // Ensure totalElements is used
 
-    // Memoize fetchProjects to prevent unnecessary re-renders
+    // Fetch projects with pagination
     const fetchProjects = useCallback(async () => {
         try {
-            const response = await axiosInstance.get('/projects', {
-                params: {
-                    page: page,
-                    size: rowsPerPage,
-                    sort: 'projectName,asc',
-                },
+            const response = await getAllProjects({
+                page: page,
+                size: rowsPerPage,
+                sort: 'projectName,asc',
             });
-            setProjects(response.data);
+            setProjects(response.data.content || response.data); // Adjust based on API response structure
+            setTotalElements(response.data.totalElements || response.data.length); // Set totalElements correctly
             setLoading(false);
         } catch (error) {
             console.error('Error fetching projects:', error);
@@ -46,55 +47,35 @@ function ProjectTable() {
         }
     }, [page, rowsPerPage]);
 
-    // Fetch employees once when the component mounts
-    useEffect(() => {
-        const fetchEmployees = async () => {
-            try {
-                const response = await axiosInstance.get('/employees');
-                setEmployees(response.data);
-            } catch (error) {
-                console.error('Error fetching employees:', error);
-                setSnackbarMessage('Failed to fetch employees.');
-                setSnackbarOpen(true);
-            }
-        };
-        fetchEmployees();
-    }, []); // Empty dependency array ensures this runs once
-
-    // Fetch projects whenever 'fetchProjects' changes (i.e., when 'page' or 'rowsPerPage' changes)
     useEffect(() => {
         fetchProjects();
     }, [fetchProjects]);
 
-    // Handler for opening the Add Project form
+    // Handlers
     const handleAdd = () => {
         setSelectedProject(null);
         setOpenForm(true);
     };
 
-    // Handler for editing an existing project
     const handleEdit = (project) => {
         setSelectedProject(project);
         setOpenForm(true);
     };
 
-    // Handler for deleting a project
     const handleDelete = (project) => {
         setProjectToDelete(project);
         setOpenConfirm(true);
     };
 
-    // Handler for closing the Project form modal
     const handleFormClose = () => {
         setOpenForm(false);
-        fetchProjects(); // Refresh the project list after closing the form
+        fetchProjects();
     };
 
-    // Handler for confirming deletion
     const handleConfirmClose = async (confirm) => {
         if (confirm) {
             try {
-                await axiosInstance.delete(`/projects/${projectToDelete.projectId}`);
+                await deleteProject(projectToDelete.projectId);
                 setSnackbarMessage('Project deleted successfully.');
                 setSnackbarOpen(true);
                 fetchProjects();
@@ -107,18 +88,17 @@ function ProjectTable() {
         setOpenConfirm(false);
     };
 
-    // Handler for changing the current page
+    // Pagination handlers
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
 
-    // Handler for changing the number of rows per page
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
 
-    // Loading state for fetching projects
+    // Loading state
     if (loading) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '50px' }}>
@@ -153,47 +133,54 @@ function ProjectTable() {
                             <TableCell className={classes.tableCell}><strong>ID</strong></TableCell>
                             <TableCell className={classes.tableCell}><strong>Project Name</strong></TableCell>
                             <TableCell className={classes.tableCell}><strong>Description</strong></TableCell>
-                            <TableCell className={classes.tableCell}><strong>Assigned Employee</strong></TableCell>
+                            <TableCell className={classes.tableCell}><strong>Assigned Employees</strong></TableCell>
+                            <TableCell className={classes.tableCell}><strong>Required Skills</strong></TableCell>
                             <TableCell align="right" className={classes.tableCell}><strong>Actions</strong></TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {projects.content.length > 0 ? (
-                            projects.content.map((project) => {
-                                const employee = employees.find(emp => emp.employeeId === project.employeeId);
-                                return (
-                                    <TableRow key={project.projectId} className={classes.tableRow}>
-                                        <TableCell className={classes.tableCell}>{project.projectId}</TableCell>
-                                        <TableCell className={classes.tableCell}>{project.projectName}</TableCell>
-                                        <TableCell className={classes.tableCell}>{project.description}</TableCell>
-                                        <TableCell className={classes.tableCell}>{employee ? employee.name : 'Unassigned'}</TableCell>
-                                        <TableCell align="right" className={classes.tableCell}>
-                                            <Tooltip title="Edit Project">
-                                                <Button
-                                                    variant="outlined"
-                                                    color="primary"
-                                                    onClick={() => handleEdit(project)}
-                                                    style={{ marginRight: '10px' }}
-                                                >
-                                                    Edit
-                                                </Button>
-                                            </Tooltip>
-                                            <Tooltip title="Delete Project">
-                                                <Button
-                                                    variant="outlined"
-                                                    color="secondary"
-                                                    onClick={() => handleDelete(project)}
-                                                >
-                                                    Delete
-                                                </Button>
-                                            </Tooltip>
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })
+                        {projects.length > 0 ? (
+                            projects.map((project) => (
+                                <TableRow key={project.projectId} className={classes.tableRow}>
+                                    <TableCell className={classes.tableCell}>{project.projectId}</TableCell>
+                                    <TableCell className={classes.tableCell}>{project.projectName}</TableCell>
+                                    <TableCell className={classes.tableCell}>{project.description}</TableCell>
+                                    <TableCell className={classes.tableCell}>
+                                        {project.employees && project.employees.length > 0
+                                            ? project.employees.map(emp => `${emp.employeeId} - ${emp.name}`).join(', ')
+                                            : 'None'}
+                                    </TableCell>
+                                    <TableCell className={classes.tableCell}>
+                                        {project.skills && project.skills.length > 0
+                                            ? project.skills.map(skill => skill.name).join(', ')
+                                            : 'None'}
+                                    </TableCell>
+                                    <TableCell align="right" className={classes.tableCell}>
+                                        <Tooltip title="Edit Project">
+                                            <Button
+                                                variant="outlined"
+                                                color="primary"
+                                                onClick={() => handleEdit(project)}
+                                                style={{ marginRight: '10px' }}
+                                            >
+                                                Edit
+                                            </Button>
+                                        </Tooltip>
+                                        <Tooltip title="Delete Project">
+                                            <Button
+                                                variant="outlined"
+                                                color="secondary"
+                                                onClick={() => handleDelete(project)}
+                                            >
+                                                Delete
+                                            </Button>
+                                        </Tooltip>
+                                    </TableCell>
+                                </TableRow>
+                            ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={5} align="center">
+                                <TableCell colSpan={6} align="center">
                                     No projects found.
                                 </TableCell>
                             </TableRow>
@@ -204,7 +191,7 @@ function ProjectTable() {
                 {/* Pagination Controls */}
                 <TablePagination
                     component="div"
-                    count={projects.totalElements}
+                    count={totalElements}
                     page={page}
                     onPageChange={handleChangePage}
                     rowsPerPage={rowsPerPage}
@@ -226,7 +213,7 @@ function ProjectTable() {
             <ConfirmDialog
                 open={openConfirm}
                 handleClose={handleConfirmClose}
-                project={projectToDelete} // Ensure ConfirmDialog uses 'project' prop
+                project={projectToDelete} // Ensure ConfirmDialog uses 'project' prop appropriately
             />
 
             {/* Snackbar for Notifications */}
@@ -238,6 +225,7 @@ function ProjectTable() {
             />
         </div>
     );
+
 }
 
 export default ProjectTable;

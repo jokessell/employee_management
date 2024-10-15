@@ -16,6 +16,9 @@ function NavigationBar() {
                 <Button color="inherit" component={Link} to="/projects">
                     Projects
                 </Button>
+                <Button color="inherit" component={Link} to="/skills">
+                    Skills
+                </Button>
                 <Button color="inherit" component={Link} to="/generated-data">
                     AI Data
                 </Button>

@@ -1,26 +1,26 @@
-// src/components/EmployeeTable.js
+// src/components/SkillTable.js
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, Button, Tooltip,
     Snackbar, Typography, CircularProgress,
-    TablePagination, Avatar
+    TablePagination
 } from '@mui/material';
-import EmployeeForm from './EmployeeForm';
+import SkillForm from './SkillForm'; // Ensure SkillForm.js exists in the same directory
 import ConfirmDialog from './ConfirmDialog';
-import { getAllEmployees, deleteEmployee } from '../api/employeeApi'; // Ensure deleteEmployee is imported
+import { getAllSkills, deleteSkill } from '../api/skillApi';
 import useStyles from '../styles/tableStyles'; // Import shared styles
 
-function EmployeeTable() {
+function SkillTable() {
     const classes = useStyles(); // Initialize styles
 
     // State variables
-    const [employees, setEmployees] = useState([]);
+    const [skills, setSkills] = useState([]);
     const [openForm, setOpenForm] = useState(false);
-    const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const [selectedSkill, setSelectedSkill] = useState(null);
     const [openConfirm, setOpenConfirm] = useState(false);
-    const [employeeToDelete, setEmployeeToDelete] = useState(null);
+    const [skillToDelete, setSkillToDelete] = useState(null);
     const [loading, setLoading] = useState(true);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -28,60 +28,60 @@ function EmployeeTable() {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [totalElements, setTotalElements] = useState(0); // Ensure totalElements is used
 
-    // Fetch employees with pagination
-    const fetchEmployees = useCallback(async () => {
+    // Fetch skills with pagination
+    const fetchSkills = useCallback(async () => {
         try {
-            const response = await getAllEmployees({
+            const response = await getAllSkills({
                 page: page,
                 size: rowsPerPage,
                 sort: 'name,asc',
             });
-            setEmployees(response.data.content || response.data); // Adjust based on API response structure
+            setSkills(response.data.content || response.data); // Adjust based on API response structure
             setTotalElements(response.data.totalElements || response.data.length); // Set totalElements correctly
             setLoading(false);
         } catch (error) {
-            console.error('Error fetching employees:', error);
-            setSnackbarMessage('Failed to fetch employees.');
+            console.error('Error fetching skills:', error);
+            setSnackbarMessage('Failed to fetch skills.');
             setSnackbarOpen(true);
             setLoading(false);
         }
     }, [page, rowsPerPage]);
 
     useEffect(() => {
-        fetchEmployees();
-    }, [fetchEmployees]);
+        fetchSkills();
+    }, [fetchSkills]);
 
     // Handlers
     const handleAdd = () => {
-        setSelectedEmployee(null);
+        setSelectedSkill(null);
         setOpenForm(true);
     };
 
-    const handleEdit = (employee) => {
-        setSelectedEmployee(employee);
+    const handleEdit = (skill) => {
+        setSelectedSkill(skill);
         setOpenForm(true);
     };
 
-    const handleDelete = (employee) => {
-        setEmployeeToDelete(employee);
+    const handleDelete = (skill) => {
+        setSkillToDelete(skill);
         setOpenConfirm(true);
     };
 
     const handleFormClose = () => {
         setOpenForm(false);
-        fetchEmployees();
+        fetchSkills();
     };
 
     const handleConfirmClose = async (confirm) => {
         if (confirm) {
             try {
-                await deleteEmployee(employeeToDelete.employeeId);
-                setSnackbarMessage('Employee deleted successfully.');
+                await deleteSkill(skillToDelete.skillId);
+                setSnackbarMessage('Skill deleted successfully.');
                 setSnackbarOpen(true);
-                fetchEmployees();
+                fetchSkills();
             } catch (error) {
-                console.error('Error deleting employee:', error);
-                setSnackbarMessage('Failed to delete employee.');
+                console.error('Error deleting skill:', error);
+                setSnackbarMessage('Failed to delete skill.');
                 setSnackbarOpen(true);
             }
         }
@@ -111,76 +111,52 @@ function EmployeeTable() {
         <div style={{ padding: '40px' }}>
             {/* Title */}
             <Typography variant="h4" align="center" gutterBottom>
-                Employee Management
+                Skill Management
             </Typography>
 
-            {/* Add Employee Button */}
+            {/* Add Skill Button */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
                 <Button
                     variant="contained"
                     className={classes.addButton}
                     onClick={handleAdd}
                 >
-                    Add Employee
+                    Add Skill
                 </Button>
             </div>
 
-            {/* Employees Table */}
+            {/* Skills Table */}
             <TableContainer component={Paper} className={classes.tableContainer}>
                 <Table>
                     <TableHead>
                         <TableRow className={classes.tableHeader}>
                             <TableCell className={classes.tableCell}><strong>ID</strong></TableCell>
-                            <TableCell className={classes.tableCell}><strong>Avatar</strong></TableCell>
                             <TableCell className={classes.tableCell}><strong>Name</strong></TableCell>
-                            <TableCell className={classes.tableCell}><strong>Job Role</strong></TableCell>
-                            <TableCell className={classes.tableCell}><strong>Date of Birth</strong></TableCell>
-                            <TableCell className={classes.tableCell}><strong>Age</strong></TableCell>
-                            <TableCell className={classes.tableCell}><strong>Email</strong></TableCell>
-                            <TableCell className={classes.tableCell}><strong>Gender</strong></TableCell>
-                            <TableCell className={classes.tableCell}><strong>Skills</strong></TableCell>
                             <TableCell align="right" className={classes.tableCell}><strong>Actions</strong></TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {employees.length > 0 ? (
-                            employees.map((employee) => (
-                                <TableRow key={employee.employeeId} className={classes.tableRow}>
-                                    <TableCell className={classes.tableCell}>{employee.employeeId}</TableCell>
-                                    <TableCell className={classes.tableCell}>
-                                        {employee.avatarUrl ? (
-                                            <Avatar src={employee.avatarUrl} alt={employee.name} className={classes.avatar} />
-                                        ) : (
-                                            <Avatar className={classes.avatar}>{employee.name.charAt(0)}</Avatar>
-                                        )}
-                                    </TableCell>
-                                    <TableCell className={classes.tableCell}>{employee.name}</TableCell>
-                                    <TableCell className={classes.tableCell}>{employee.jobRole}</TableCell>
-                                    <TableCell className={classes.tableCell}>{employee.dateOfBirth}</TableCell>
-                                    <TableCell className={classes.tableCell}>{employee.age}</TableCell>
-                                    <TableCell className={classes.tableCell}>{employee.email}</TableCell>
-                                    <TableCell className={classes.tableCell}>{employee.gender}</TableCell>
-                                    <TableCell className={classes.tableCell}>
-                                        {employee.skills && employee.skills.length > 0
-                                            ? employee.skills.map(skill => skill.name).join(', ')
-                                            : 'None'}
-                                    </TableCell>
+                        {skills.length > 0 ? (
+                            skills.map((skill) => (
+                                <TableRow key={skill.skillId} className={classes.tableRow}>
+                                    <TableCell className={classes.tableCell}>{skill.skillId}</TableCell>
+                                    <TableCell className={classes.tableCell}>{skill.name}</TableCell>
                                     <TableCell align="right" className={classes.tableCell}>
-                                        <Tooltip title="Edit Employee">
+                                        <Tooltip title="Edit Skill">
                                             <Button
                                                 variant="outlined"
                                                 color="primary"
-                                                onClick={() => handleEdit(employee)}
+                                                onClick={() => handleEdit(skill)}
                                                 style={{ marginRight: '10px' }}
                                             >
                                                 Edit
                                             </Button>
                                         </Tooltip>
-                                        <Tooltip title="Delete Employee">
+                                        <Tooltip title="Delete Skill">
                                             <Button
                                                 variant="outlined"
                                                 color="secondary"
-                                                onClick={() => handleDelete(employee)}
+                                                onClick={() => handleDelete(skill)}
                                             >
                                                 Delete
                                             </Button>
@@ -190,8 +166,8 @@ function EmployeeTable() {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={10} align="center">
-                                    No employees found.
+                                <TableCell colSpan={3} align="center">
+                                    No skills found.
                                 </TableCell>
                             </TableRow>
                         )}
@@ -210,11 +186,11 @@ function EmployeeTable() {
                 />
             </TableContainer>
 
-            {/* Employee Form Modal */}
-            <EmployeeForm
+            {/* Skill Form Modal */}
+            <SkillForm
                 open={openForm}
                 handleClose={handleFormClose}
-                employee={selectedEmployee}
+                skill={selectedSkill}
                 setSnackbarOpen={setSnackbarOpen}
                 setSnackbarMessage={setSnackbarMessage}
             />
@@ -223,7 +199,7 @@ function EmployeeTable() {
             <ConfirmDialog
                 open={openConfirm}
                 handleClose={handleConfirmClose}
-                project={employeeToDelete} // Ensure ConfirmDialog uses 'project' prop appropriately
+                project={skillToDelete} // Ensure ConfirmDialog uses 'project' prop appropriately
             />
 
             {/* Snackbar for Notifications */}
@@ -238,4 +214,4 @@ function EmployeeTable() {
 
 }
 
-export default EmployeeTable;
+export default SkillTable;

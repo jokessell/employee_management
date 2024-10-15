@@ -1,13 +1,12 @@
-// src/components/EmployeeForm.js
-
 import React, { useState, useEffect } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
-    TextField, Button, MenuItem, Typography, Avatar
+    TextField, Button, MenuItem, Typography, Avatar, Autocomplete
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axiosInstance from '../api/axiosConfig';
+import { getAllSkills } from '../api/skillApi';
 import useStyles from '../styles/tableStyles'; // Import shared styles
 
 function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackbarMessage }) {
@@ -15,6 +14,7 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
 
     // State for form fields
     const [avatarPreview, setAvatarPreview] = useState('');
+    const [skills, setSkills] = useState([]);
 
     useEffect(() => {
         if (employee && employee.avatarUrl) {
@@ -23,6 +23,24 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
             setAvatarPreview('');
         }
     }, [employee]);
+
+    useEffect(() => {
+        // Fetch skills to populate the multi-select
+        const fetchSkills = async () => {
+            try {
+                const response = await getAllSkills({
+                    page: 0,
+                    size: 1000, // Adjust size as needed to fetch all skills
+                    sort: 'name,asc', // Adjust sorting as needed
+                });
+                const skillsArray = response.data.content || []; // Safely extract content
+                setSkills(skillsArray);
+            } catch (error) {
+                console.error('Error fetching skills:', error);
+            }
+        };
+        fetchSkills();
+    }, []);
 
     const validationSchema = Yup.object({
         name: Yup.string()
@@ -38,13 +56,14 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
             .max(255, 'Job Role cannot exceed 255 characters'),
         gender: Yup.string()
             .required('Gender is required'),
-        age: Yup.number()
-            .required('Age is required')
-            .min(18, 'Age must be at least 18')
-            .max(100, 'Age must be less than or equal to 100'),
-        email: Yup.string()
-            .email('Invalid email format')
-            .required('Email is required'),
+        skills: Yup.array()
+            .of(
+                Yup.object().shape({
+                    skillId: Yup.number().required(),
+                    name: Yup.string().required(),
+                })
+            )
+            .min(1, 'At least one skill must be selected'),
     });
 
     const formik = useFormik({
@@ -55,20 +74,32 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
             avatarUrl: employee ? employee.avatarUrl : '',
             jobRole: employee ? employee.jobRole : '',
             gender: employee ? employee.gender : '',
-            age: employee ? employee.age : '',
-            email: employee ? employee.email : '',
+            skills: employee ? employee.skills.map(skill => ({
+                skillId: skill.skillId,
+                name: skill.name,
+            })) : [],
         },
         validationSchema: validationSchema,
         enableReinitialize: true,
         onSubmit: async (values) => {
             try {
+                const payload = {
+                    name: values.name,
+                    dateOfBirth: values.dateOfBirth,
+                    avatarUrl: values.avatarUrl,
+                    jobRole: values.jobRole,
+                    gender: values.gender,
+                    projectIds: employee ? employee.projectIds : [], // Preserve existing projects if editing
+                    skillIds: values.skills.map(skill => skill.skillId),
+                };
+
                 if (employee) {
                     // Update existing employee
-                    await axiosInstance.put(`/employees/${employee.employeeId}`, values);
+                    await axiosInstance.put(`/employees/${employee.employeeId}`, payload);
                     setSnackbarMessage('Employee updated successfully');
                 } else {
                     // Create new employee
-                    await axiosInstance.post('/employees', values);
+                    await axiosInstance.post('/employees', payload);
                     setSnackbarMessage('Employee created successfully');
                 }
                 setSnackbarOpen(true);
@@ -178,29 +209,26 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                         <MenuItem value="Non-binary">Non-binary</MenuItem>
                         <MenuItem value="Other">Other</MenuItem>
                     </TextField>
-                    <TextField
-                        margin="dense"
-                        label="Age"
-                        name="age"
-                        type="number"
-                        fullWidth
-                        value={formik.values.age}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={formik.touched.age && Boolean(formik.errors.age)}
-                        helperText={formik.touched.age && formik.errors.age}
-                    />
-                    <TextField
-                        margin="dense"
-                        label="Email"
-                        name="email"
-                        type="email"
-                        fullWidth
-                        value={formik.values.email}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={formik.touched.email && Boolean(formik.errors.email)}
-                        helperText={formik.touched.email && formik.errors.email}
+                    {/* Multi-select Autocomplete for Skills */}
+                    <Autocomplete
+                        multiple
+                        id="skills"
+                        options={skills}
+                        getOptionLabel={(option) => option.name}
+                        value={formik.values.skills}
+                        onChange={(event, newValue) => {
+                            formik.setFieldValue('skills', newValue);
+                        }}
+                        filterSelectedOptions
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Assign Skills"
+                                margin="dense"
+                                error={formik.touched.skills && Boolean(formik.errors.skills)}
+                                helperText={formik.touched.skills && formik.errors.skills}
+                            />
+                        )}
                     />
                 </form>
             </DialogContent>

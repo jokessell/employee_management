@@ -1,3 +1,5 @@
+// src/components/GeneratedDataTable.js
+
 import React, { useState } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer,
@@ -94,10 +96,10 @@ function GeneratedDataTable() {
     return (
         <div style={{ backgroundColor: '#f0f0f0', minHeight: '100vh', padding: '50px 0' }}>
             <Typography variant="h3" align="center" gutterBottom>
-                {topic}
+                {topic || 'Generated Data'}
             </Typography>
             <Typography variant="subtitle1" align="center" gutterBottom>
-                {prompt}
+                {prompt || 'Your prompt goes here.'}
             </Typography>
 
             <div style={{ maxWidth: '80%', margin: '0 auto', textAlign: 'center' }}>
@@ -119,35 +121,42 @@ function GeneratedDataTable() {
                     </div>
                 )}
 
-                <TableContainer component={Paper} style={{ maxWidth: '90%', margin: '0 auto' }}>
-                    <Table>
-                        <TableHead>
-                            <TableRow style={{ backgroundColor: '#e0e0e0' }}>
-                                {Object.keys(data[0]).map((key) => (
-                                    <TableCell key={key}><strong>{key}</strong></TableCell>
-                                ))}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody component={motion.tbody}>
-                            <AnimatePresence>
-                                {data.map((record, idx) => (
-                                    <motion.tr
-                                        key={idx}
-                                        initial="hidden"
-                                        animate="visible"
-                                        exit="hidden"
-                                        variants={tableRowVariants}
-                                        transition={{ duration: 0.3 }}
-                                    >
-                                        {Object.values(record).map((value, i) => (
-                                            <TableCell key={i}>{value}</TableCell>
-                                        ))}
-                                    </motion.tr>
-                                ))}
-                            </AnimatePresence>
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                {/* Conditional Rendering of Table */}
+                {data.length > 0 ? (
+                    <TableContainer component={Paper} style={{ maxWidth: '90%', margin: '0 auto' }}>
+                        <Table>
+                            <TableHead>
+                                <TableRow style={{ backgroundColor: '#e0e0e0' }}>
+                                    {Object.keys(data[0]).map((key) => (
+                                        <TableCell key={key}><strong>{key}</strong></TableCell>
+                                    ))}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody component={motion.tbody}>
+                                <AnimatePresence>
+                                    {data.map((record, idx) => (
+                                        <motion.tr
+                                            key={idx}
+                                            initial="hidden"
+                                            animate="visible"
+                                            exit="hidden"
+                                            variants={tableRowVariants}
+                                            transition={{ duration: 0.3 }}
+                                        >
+                                            {Object.values(record).map((value, i) => (
+                                                <TableCell key={i}>{value}</TableCell>
+                                            ))}
+                                        </motion.tr>
+                                    ))}
+                                </AnimatePresence>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                ) : (
+                    <Typography variant="h6" align="center" style={{ marginTop: '20px' }}>
+                        No data available.
+                    </Typography>
+                )}
 
                 {/* Export to JSON Button */}
                 <Button
@@ -175,7 +184,7 @@ function GeneratedDataTable() {
                 </div>
             </div>
         </div>
-    );
+    )
 }
 
 export default GeneratedDataTable;
