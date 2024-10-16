@@ -1,22 +1,31 @@
 // src/api/projectApi.js
+
 import axiosInstance from './axiosConfig';
 
-// Get all projects with pagination
-export const getAllProjects = (params = {}) => {
-    return axiosInstance.get('/projects', { params });
+export const getAllProjects = async (params) => {
+    return await axiosInstance.get('/projects', { params });
 };
 
-// Create a new project
-export const createProject = (projectData) => {
-    return axiosInstance.post('/projects', projectData);
+export const getProjectById = async (id) => {
+    return await axiosInstance.get(`/projects/${id}`);
 };
 
-// Update an existing project
-export const updateProject = (id, projectData) => {
-    return axiosInstance.put(`/projects/${id}`, projectData);
+export const createProject = async (projectData) => {
+    return await axiosInstance.post('/projects', projectData);
 };
 
-// Delete a project
-export const deleteProject = (id) => {
-    return axiosInstance.delete(`/projects/${id}`);
+export const updateProject = async (id, projectData) => {
+    return await axiosInstance.put(`/projects/${id}`, projectData);
+};
+
+export const partialUpdateProject = async (id, projectData) => {
+    return await axiosInstance.patch(`/projects/${id}`, projectData);
+};
+
+export const deleteProject = async (id) => {
+    return await axiosInstance.delete(`/projects/${id}`);
+};
+
+export const getProjectsByEmployeeId = async (employeeId) => {
+    return await axiosInstance.get(`/projects/employee/${employeeId}`);
 };

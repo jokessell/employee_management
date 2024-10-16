@@ -1,35 +1,38 @@
 // src/styles/tableStyles.js
+
 import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles({
     tableHeader: {
-        backgroundColor: '#e0e0e0', // Gray header background
+        backgroundColor: '#e0e0e0',
+    },
+    tableCell: {
+        color: '#fff',
+        fontWeight: 'bold',
+        padding: '6px 8px', // Reduced padding
+        whiteSpace: 'normal',
+        wordWrap: 'break-word',
+        fontSize: '0.875rem', // Smaller font size
     },
     tableRow: {
         '&:nth-of-type(odd)': {
-            backgroundColor: '#f9f9f9', // Light gray for odd rows
+            backgroundColor: '#f5f5f5',
         },
-        '&:hover': {
-            backgroundColor: '#e8eaf6', // Light blue on hover
-        },
-    },
-    tableCell: {
-        padding: '4px 8px', // Reduced padding for a sleek look
-        fontSize: '0.8rem',
-    },
-    tableContainer: {
-        borderRadius: '4px', // Rounded corners for the table container
     },
     addButton: {
-        backgroundColor: '#757575', // Gray button background
+        backgroundColor: '#1976d2',
         color: '#fff',
         '&:hover': {
-            backgroundColor: '#616161', // Darker gray on hover
+            backgroundColor: '#115293',
         },
     },
-    avatar: {
-        width: '30px',
-        height: '30px',
+    formField: {
+        marginTop: '8px',
+    },
+    // Additional styles for compactness
+    chip: {
+        height: '24px',
+        fontSize: '0.75rem',
     },
 });
 

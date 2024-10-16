@@ -5,15 +5,17 @@ import {
     Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, Button, Tooltip,
     Snackbar, Typography, CircularProgress,
-    TablePagination
+    TablePagination, Chip, Stack, TableSortLabel
 } from '@mui/material';
+import FaceIcon from '@mui/icons-material/Face';
+import BuildIcon from '@mui/icons-material/Build';
 import ProjectForm from './ProjectForm';
 import ConfirmDialog from './ConfirmDialog';
-import { getAllProjects, deleteProject } from '../api/projectApi'; // Ensure deleteProject is imported
-import useStyles from '../styles/tableStyles'; // Import shared styles
+import { getAllProjects, deleteProject } from '../api/projectApi';
+import useStyles from '../styles/tableStyles';
 
 function ProjectTable() {
-    const classes = useStyles(); // Initialize styles
+    const classes = useStyles();
 
     // State variables
     const [projects, setProjects] = useState([]);
@@ -26,18 +28,24 @@ function ProjectTable() {
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [totalElements, setTotalElements] = useState(0); // Ensure totalElements is used
+    const [totalElements, setTotalElements] = useState(0);
+    const [order, setOrder] = useState('asc'); // 'asc' or 'desc'
+    const [orderBy, setOrderBy] = useState('projectId'); // Default sort by projectId
 
-    // Fetch projects with pagination
+    // Fetch projects with pagination and sorting
     const fetchProjects = useCallback(async () => {
+        setLoading(true); // Start loading
         try {
             const response = await getAllProjects({
                 page: page,
                 size: rowsPerPage,
-                sort: 'projectName,asc',
+                sort: `${orderBy},${order}`,
             });
-            setProjects(response.data.content || response.data); // Adjust based on API response structure
-            setTotalElements(response.data.totalElements || response.data.length); // Set totalElements correctly
+            console.log('Fetched Projects:', response.data); // Debugging
+
+            // Assuming response.data.content contains the array of projects
+            setProjects(response.data.content || []);
+            setTotalElements(response.data.totalElements || response.data.length);
             setLoading(false);
         } catch (error) {
             console.error('Error fetching projects:', error);
@@ -45,7 +53,7 @@ function ProjectTable() {
             setSnackbarOpen(true);
             setLoading(false);
         }
-    }, [page, rowsPerPage]);
+    }, [page, rowsPerPage, order, orderBy]);
 
     useEffect(() => {
         fetchProjects();
@@ -98,6 +106,14 @@ function ProjectTable() {
         setPage(0);
     };
 
+    // Sorting handler
+    const handleRequestSort = (property) => {
+        const isAsc = orderBy === property && order === 'asc';
+        setOrder(isAsc ? 'desc' : 'asc');
+        setOrderBy(property);
+        setPage(0); // Reset to first page on sort
+    };
+
     // Loading state
     if (loading) {
         return (
@@ -127,15 +143,68 @@ function ProjectTable() {
 
             {/* Projects Table */}
             <TableContainer component={Paper} className={classes.tableContainer}>
-                <Table>
+                <Table size="small" stickyHeader>
                     <TableHead>
                         <TableRow className={classes.tableHeader}>
-                            <TableCell className={classes.tableCell}><strong>ID</strong></TableCell>
-                            <TableCell className={classes.tableCell}><strong>Project Name</strong></TableCell>
-                            <TableCell className={classes.tableCell}><strong>Description</strong></TableCell>
-                            <TableCell className={classes.tableCell}><strong>Assigned Employees</strong></TableCell>
-                            <TableCell className={classes.tableCell}><strong>Required Skills</strong></TableCell>
-                            <TableCell align="right" className={classes.tableCell}><strong>Actions</strong></TableCell>
+                            {/* ID Column */}
+                            <TableCell className={classes.tableCell}>
+                                <TableSortLabel
+                                    active={orderBy === 'projectId'}
+                                    direction={orderBy === 'projectId' ? order : 'asc'}
+                                    onClick={() => handleRequestSort('projectId')}
+                                >
+                                    <strong>ID</strong>
+                                </TableSortLabel>
+                            </TableCell>
+
+                            {/* Project Name Column */}
+                            <TableCell className={classes.tableCell}>
+                                <TableSortLabel
+                                    active={orderBy === 'projectName'}
+                                    direction={orderBy === 'projectName' ? order : 'asc'}
+                                    onClick={() => handleRequestSort('projectName')}
+                                >
+                                    <strong>Project Name</strong>
+                                </TableSortLabel>
+                            </TableCell>
+
+                            {/* Description Column */}
+                            <TableCell className={classes.tableCell}>
+                                <TableSortLabel
+                                    active={orderBy === 'description'}
+                                    direction={orderBy === 'description' ? order : 'asc'}
+                                    onClick={() => handleRequestSort('description')}
+                                >
+                                    <strong>Description</strong>
+                                </TableSortLabel>
+                            </TableCell>
+
+                            {/* Assigned Employees Column */}
+                            <TableCell className={classes.tableCell}>
+                                <TableSortLabel
+                                    active={orderBy === 'employees'}
+                                    direction={orderBy === 'employees' ? order : 'asc'}
+                                    onClick={() => handleRequestSort('employees')}
+                                >
+                                    <strong>Assigned Employees</strong>
+                                </TableSortLabel>
+                            </TableCell>
+
+                            {/* Required Skills Column */}
+                            <TableCell className={classes.tableCell}>
+                                <TableSortLabel
+                                    active={orderBy === 'skills'}
+                                    direction={orderBy === 'skills' ? order : 'asc'}
+                                    onClick={() => handleRequestSort('skills')}
+                                >
+                                    <strong>Required Skills</strong>
+                                </TableSortLabel>
+                            </TableCell>
+
+                            {/* Actions Column */}
+                            <TableCell align="right" className={classes.tableCell}>
+                                <strong>Actions</strong>
+                            </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -146,14 +215,40 @@ function ProjectTable() {
                                     <TableCell className={classes.tableCell}>{project.projectName}</TableCell>
                                     <TableCell className={classes.tableCell}>{project.description}</TableCell>
                                     <TableCell className={classes.tableCell}>
-                                        {project.employees && project.employees.length > 0
-                                            ? project.employees.map(emp => `${emp.employeeId} - ${emp.name}`).join(', ')
-                                            : 'None'}
+                                        {project.employees && project.employees.length > 0 ? (
+                                            <Stack direction="row" spacing={1} flexWrap="wrap">
+                                                {project.employees.map((emp) => (
+                                                    <Chip
+                                                        key={emp.employeeId}
+                                                        label={emp.name}
+                                                        variant="outlined"
+                                                        size="small"
+                                                        className={classes.chip}
+                                                        icon={<FaceIcon />}
+                                                    />
+                                                ))}
+                                            </Stack>
+                                        ) : (
+                                            'None'
+                                        )}
                                     </TableCell>
                                     <TableCell className={classes.tableCell}>
-                                        {project.skills && project.skills.length > 0
-                                            ? project.skills.map(skill => skill.name).join(', ')
-                                            : 'None'}
+                                        {project.skills && project.skills.length > 0 ? (
+                                            <Stack direction="row" spacing={1} flexWrap="wrap">
+                                                {project.skills.map((skill) => (
+                                                    <Chip
+                                                        key={skill.skillId}
+                                                        label={skill.name}
+                                                        variant="outlined"
+                                                        size="small"
+                                                        className={classes.chip}
+                                                        icon={<BuildIcon />}
+                                                    />
+                                                ))}
+                                            </Stack>
+                                        ) : (
+                                            'None'
+                                        )}
                                     </TableCell>
                                     <TableCell align="right" className={classes.tableCell}>
                                         <Tooltip title="Edit Project">
@@ -161,7 +256,8 @@ function ProjectTable() {
                                                 variant="outlined"
                                                 color="primary"
                                                 onClick={() => handleEdit(project)}
-                                                style={{ marginRight: '10px' }}
+                                                size="small"
+                                                style={{ marginRight: '8px' }}
                                             >
                                                 Edit
                                             </Button>
@@ -171,6 +267,7 @@ function ProjectTable() {
                                                 variant="outlined"
                                                 color="secondary"
                                                 onClick={() => handleDelete(project)}
+                                                size="small"
                                             >
                                                 Delete
                                             </Button>
@@ -213,7 +310,7 @@ function ProjectTable() {
             <ConfirmDialog
                 open={openConfirm}
                 handleClose={handleConfirmClose}
-                project={projectToDelete} // Ensure ConfirmDialog uses 'project' prop appropriately
+                project={projectToDelete}
             />
 
             {/* Snackbar for Notifications */}
