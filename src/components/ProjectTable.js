@@ -3,16 +3,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer,
-    TableHead, TableRow, Paper, Button, Tooltip,
+    TableHead, TableRow, Paper, Button,
     Snackbar, Typography, CircularProgress,
-    TablePagination, Chip, Stack, TableSortLabel
+    TablePagination, TableSortLabel
 } from '@mui/material';
-import FaceIcon from '@mui/icons-material/Face';
-import BuildIcon from '@mui/icons-material/Build';
 import ProjectForm from './ProjectForm';
 import ConfirmDialog from './ConfirmDialog';
 import { getAllProjects, deleteProject } from '../api/projectApi';
 import useStyles from '../styles/tableStyles';
+import ProjectRow from './ProjectRow';
 
 function ProjectTable() {
     const classes = useStyles();
@@ -124,18 +123,19 @@ function ProjectTable() {
     }
 
     return (
-        <div style={{ padding: '40px' }}>
+        <div style={{ padding: '20px' }}> {/* Reduced padding */}
             {/* Title */}
-            <Typography variant="h4" align="center" gutterBottom>
+            <Typography variant="h5" align="center" gutterBottom>
                 Project Management
             </Typography>
 
             {/* Add Project Button */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
                 <Button
                     variant="contained"
                     className={classes.addButton}
                     onClick={handleAdd}
+                    size="small" // Smaller button size
                 >
                     Add Project
                 </Button>
@@ -146,8 +146,9 @@ function ProjectTable() {
                 <Table size="small" stickyHeader>
                     <TableHead>
                         <TableRow className={classes.tableHeader}>
+                            {/* Table headers with adjusted styles and widths */}
                             {/* ID Column */}
-                            <TableCell className={classes.tableCell}>
+                            <TableCell className={classes.tableCell} style={{ width: '50px' }}>
                                 <TableSortLabel
                                     active={orderBy === 'projectId'}
                                     direction={orderBy === 'projectId' ? order : 'asc'}
@@ -158,7 +159,7 @@ function ProjectTable() {
                             </TableCell>
 
                             {/* Project Name Column */}
-                            <TableCell className={classes.tableCell}>
+                            <TableCell className={classes.tableCell} style={{ width: '150px' }}>
                                 <TableSortLabel
                                     active={orderBy === 'projectName'}
                                     direction={orderBy === 'projectName' ? order : 'asc'}
@@ -169,7 +170,7 @@ function ProjectTable() {
                             </TableCell>
 
                             {/* Description Column */}
-                            <TableCell className={classes.tableCell}>
+                            <TableCell className={classes.tableCell} style={{ width: '200px' }}>
                                 <TableSortLabel
                                     active={orderBy === 'description'}
                                     direction={orderBy === 'description' ? order : 'asc'}
@@ -180,7 +181,7 @@ function ProjectTable() {
                             </TableCell>
 
                             {/* Assigned Employees Column */}
-                            <TableCell className={classes.tableCell}>
+                            <TableCell className={`${classes.tableCell} ${classes.projectsColumn}`}>
                                 <TableSortLabel
                                     active={orderBy === 'employees'}
                                     direction={orderBy === 'employees' ? order : 'asc'}
@@ -191,7 +192,7 @@ function ProjectTable() {
                             </TableCell>
 
                             {/* Required Skills Column */}
-                            <TableCell className={classes.tableCell}>
+                            <TableCell className={`${classes.tableCell} ${classes.skillsColumn}`}>
                                 <TableSortLabel
                                     active={orderBy === 'skills'}
                                     direction={orderBy === 'skills' ? order : 'asc'}
@@ -202,7 +203,7 @@ function ProjectTable() {
                             </TableCell>
 
                             {/* Actions Column */}
-                            <TableCell align="right" className={classes.tableCell}>
+                            <TableCell align="right" className={classes.tableCell} style={{ width: '100px' }}>
                                 <strong>Actions</strong>
                             </TableCell>
                         </TableRow>
@@ -210,70 +211,13 @@ function ProjectTable() {
                     <TableBody>
                         {projects.length > 0 ? (
                             projects.map((project) => (
-                                <TableRow key={project.projectId} className={classes.tableRow}>
-                                    <TableCell className={classes.tableCell}>{project.projectId}</TableCell>
-                                    <TableCell className={classes.tableCell}>{project.projectName}</TableCell>
-                                    <TableCell className={classes.tableCell}>{project.description}</TableCell>
-                                    <TableCell className={classes.tableCell}>
-                                        {project.employees && project.employees.length > 0 ? (
-                                            <Stack direction="row" spacing={1} flexWrap="wrap">
-                                                {project.employees.map((emp) => (
-                                                    <Chip
-                                                        key={emp.employeeId}
-                                                        label={emp.name}
-                                                        variant="outlined"
-                                                        size="small"
-                                                        className={classes.chip}
-                                                        icon={<FaceIcon />}
-                                                    />
-                                                ))}
-                                            </Stack>
-                                        ) : (
-                                            'None'
-                                        )}
-                                    </TableCell>
-                                    <TableCell className={classes.tableCell}>
-                                        {project.skills && project.skills.length > 0 ? (
-                                            <Stack direction="row" spacing={1} flexWrap="wrap">
-                                                {project.skills.map((skill) => (
-                                                    <Chip
-                                                        key={skill.skillId}
-                                                        label={skill.name}
-                                                        variant="outlined"
-                                                        size="small"
-                                                        className={classes.chip}
-                                                        icon={<BuildIcon />}
-                                                    />
-                                                ))}
-                                            </Stack>
-                                        ) : (
-                                            'None'
-                                        )}
-                                    </TableCell>
-                                    <TableCell align="right" className={classes.tableCell}>
-                                        <Tooltip title="Edit Project">
-                                            <Button
-                                                variant="outlined"
-                                                color="primary"
-                                                onClick={() => handleEdit(project)}
-                                                size="small"
-                                                style={{ marginRight: '8px' }}
-                                            >
-                                                Edit
-                                            </Button>
-                                        </Tooltip>
-                                        <Tooltip title="Delete Project">
-                                            <Button
-                                                variant="outlined"
-                                                color="secondary"
-                                                onClick={() => handleDelete(project)}
-                                                size="small"
-                                            >
-                                                Delete
-                                            </Button>
-                                        </Tooltip>
-                                    </TableCell>
-                                </TableRow>
+                                <ProjectRow
+                                    key={project.projectId}
+                                    project={project}
+                                    handleEdit={handleEdit}
+                                    handleDelete={handleDelete}
+                                    classes={classes}
+                                />
                             ))
                         ) : (
                             <TableRow>
