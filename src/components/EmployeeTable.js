@@ -147,8 +147,12 @@ function EmployeeTable() {
                 <Table size="small" stickyHeader>
                     <TableHead>
                         <TableRow className={classes.tableHeader}>
+                            {/* Adjusted column widths and styles */}
                             {/* ID Column */}
-                            <TableCell className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                            <TableCell
+                                className={classes.tableCell}
+                                style={{ width: '50px' }}
+                            >
                                 <TableSortLabel
                                     active={orderBy === 'employeeId'}
                                     direction={orderBy === 'employeeId' ? order : 'asc'}
@@ -159,12 +163,18 @@ function EmployeeTable() {
                             </TableCell>
 
                             {/* Avatar Column */}
-                            <TableCell className={`${classes.tableCell} ${classes.avatarColumn}`}>
+                            <TableCell
+                                className={classes.tableCell}
+                                style={{ width: '70px' }}
+                            >
                                 <strong>Avatar</strong>
                             </TableCell>
 
                             {/* Name Column */}
-                            <TableCell className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                            <TableCell
+                                className={classes.tableCell}
+                                style={{ width: '120px' }}
+                            >
                                 <TableSortLabel
                                     active={orderBy === 'name'}
                                     direction={orderBy === 'name' ? order : 'asc'}
@@ -175,7 +185,10 @@ function EmployeeTable() {
                             </TableCell>
 
                             {/* Job Role Column */}
-                            <TableCell className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                            <TableCell
+                                className={classes.tableCell}
+                                style={{ width: '120px' }}
+                            >
                                 <TableSortLabel
                                     active={orderBy === 'jobRole'}
                                     direction={orderBy === 'jobRole' ? order : 'asc'}
@@ -186,7 +199,10 @@ function EmployeeTable() {
                             </TableCell>
 
                             {/* Date of Birth Column */}
-                            <TableCell className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                            <TableCell
+                                className={classes.tableCell}
+                                style={{ width: '100px' }}
+                            >
                                 <TableSortLabel
                                     active={orderBy === 'dateOfBirth'}
                                     direction={orderBy === 'dateOfBirth' ? order : 'asc'}
@@ -197,7 +213,10 @@ function EmployeeTable() {
                             </TableCell>
 
                             {/* Age Column */}
-                            <TableCell className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                            <TableCell
+                                className={classes.tableCell}
+                                style={{ width: '50px' }}
+                            >
                                 <TableSortLabel
                                     active={orderBy === 'age'}
                                     direction={orderBy === 'age' ? order : 'asc'}
@@ -208,7 +227,7 @@ function EmployeeTable() {
                             </TableCell>
 
                             {/* Email Column */}
-                            <TableCell className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                            <TableCell className={classes.tableCell}>
                                 <TableSortLabel
                                     active={orderBy === 'email'}
                                     direction={orderBy === 'email' ? order : 'asc'}
@@ -219,7 +238,10 @@ function EmployeeTable() {
                             </TableCell>
 
                             {/* Gender Column */}
-                            <TableCell className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                            <TableCell
+                                className={classes.tableCell}
+                                style={{ width: '80px' }}
+                            >
                                 <TableSortLabel
                                     active={orderBy === 'gender'}
                                     direction={orderBy === 'gender' ? order : 'asc'}
@@ -230,17 +252,21 @@ function EmployeeTable() {
                             </TableCell>
 
                             {/* Skills Column */}
-                            <TableCell className={`${classes.tableCell} ${classes.skillsColumn}`}>
+                            <TableCell className={classes.tableCell}>
                                 <strong>Skills</strong>
                             </TableCell>
 
                             {/* Projects Column */}
-                            <TableCell className={`${classes.tableCell} ${classes.projectsColumn}`}>
+                            <TableCell className={classes.tableCell}>
                                 <strong>Projects</strong>
                             </TableCell>
 
                             {/* Actions Column */}
-                            <TableCell align="right" className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                            <TableCell
+                                align="right"
+                                className={classes.tableCell}
+                                style={{ width: '150px' }}
+                            >
                                 <strong>Actions</strong>
                             </TableCell>
                         </TableRow>
@@ -250,51 +276,57 @@ function EmployeeTable() {
                             employees.map((employee) => (
                                 <TableRow key={employee.employeeId} className={classes.tableRow}>
                                     {/* ID Cell */}
-                                    <TableCell className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                                    <TableCell className={classes.tableCell}>
                                         {employee.employeeId}
                                     </TableCell>
 
                                     {/* Avatar Cell */}
-                                    <TableCell className={`${classes.tableCell} ${classes.avatarColumn}`}>
+                                    <TableCell className={classes.tableCell}>
                                         {employee.avatarUrl ? (
-                                            <Avatar src={employee.avatarUrl} alt={employee.name} className={classes.avatar} />
+                                            <Avatar
+                                                src={employee.avatarUrl}
+                                                alt={employee.name}
+                                                className={classes.avatar}
+                                            />
                                         ) : (
-                                            <Avatar className={classes.avatar}>{employee.name.charAt(0)}</Avatar>
+                                            <Avatar className={classes.avatar}>
+                                                {employee.name.charAt(0)}
+                                            </Avatar>
                                         )}
                                     </TableCell>
 
                                     {/* Name Cell */}
-                                    <TableCell className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                                    <TableCell className={classes.tableCell}>
                                         {employee.name}
                                     </TableCell>
 
                                     {/* Job Role Cell */}
-                                    <TableCell className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                                    <TableCell className={classes.tableCell}>
                                         {employee.jobRole}
                                     </TableCell>
 
                                     {/* Date of Birth Cell */}
-                                    <TableCell className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                                    <TableCell className={classes.tableCell}>
                                         {employee.dateOfBirth}
                                     </TableCell>
 
                                     {/* Age Cell */}
-                                    <TableCell className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                                    <TableCell className={classes.tableCell}>
                                         {employee.age}
                                     </TableCell>
 
                                     {/* Email Cell */}
-                                    <TableCell className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                                    <TableCell className={classes.tableCell}>
                                         {employee.email}
                                     </TableCell>
 
                                     {/* Gender Cell */}
-                                    <TableCell className={`${classes.tableCell} ${classes.dynamicColumn}`}>
+                                    <TableCell className={classes.tableCell}>
                                         {employee.gender}
                                     </TableCell>
 
                                     {/* Skills Cell */}
-                                    <TableCell className={`${classes.tableCell} ${classes.skillsColumn}`}>
+                                    <TableCell className={classes.tableCell}>
                                         {employee.skills && employee.skills.length > 0 ? (
                                             <Stack
                                                 direction="row"
@@ -320,7 +352,7 @@ function EmployeeTable() {
                                     </TableCell>
 
                                     {/* Projects Cell */}
-                                    <TableCell className={`${classes.tableCell} ${classes.projectsColumn}`}>
+                                    <TableCell className={classes.tableCell}>
                                         {employee.projects && employee.projects.length > 0 ? (
                                             <Stack
                                                 direction="row"
@@ -346,28 +378,31 @@ function EmployeeTable() {
                                     </TableCell>
 
                                     {/* Actions Cell */}
-                                    <TableCell align="right" className={`${classes.tableCell} ${classes.dynamicColumn}`}>
-                                        <Tooltip title="Edit Employee">
-                                            <Button
-                                                variant="outlined"
-                                                color="primary"
-                                                onClick={() => handleEdit(employee)}
-                                                size="small"
-                                                style={{ marginRight: '5px' }}
-                                            >
-                                                Edit
-                                            </Button>
-                                        </Tooltip>
-                                        <Tooltip title="Delete Employee">
-                                            <Button
-                                                variant="outlined"
-                                                color="secondary"
-                                                onClick={() => handleDelete(employee)}
-                                                size="small"
-                                            >
-                                                Delete
-                                            </Button>
-                                        </Tooltip>
+                                    <TableCell align="right" className={classes.tableCell}>
+                                        {/* Flex container for buttons */}
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                            <Tooltip title="Edit Employee">
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    onClick={() => handleEdit(employee)}
+                                                    size="small"
+                                                    style={{ marginRight: '8px' }}
+                                                >
+                                                    Edit
+                                                </Button>
+                                            </Tooltip>
+                                            <Tooltip title="Delete Employee">
+                                                <Button
+                                                    variant="contained"
+                                                    color="secondary"
+                                                    onClick={() => handleDelete(employee)}
+                                                    size="small"
+                                                >
+                                                    Delete
+                                                </Button>
+                                            </Tooltip>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))

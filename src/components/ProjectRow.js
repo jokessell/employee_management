@@ -120,27 +120,30 @@ function ProjectRow({ project, handleEdit, handleDelete, classes }) {
 
             {/* Actions Column */}
             <TableCell align="right" className={classes.tableCell}>
-                <Tooltip title="Edit Project">
-                    <Button
-                        variant="outlined"
-                        color="primary"
-                        onClick={() => handleEdit(project)}
-                        size="small"
-                        style={{ marginRight: '8px' }}
-                    >
-                        Edit
-                    </Button>
-                </Tooltip>
-                <Tooltip title="Delete Project">
-                    <Button
-                        variant="outlined"
-                        color="secondary"
-                        onClick={() => handleDelete(project)}
-                        size="small"
-                    >
-                        Delete
-                    </Button>
-                </Tooltip>
+                {/* Flex container for buttons */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Tooltip title="Edit Project">
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => handleEdit(project)}
+                            size="small"
+                            style={{ marginRight: '8px' }}
+                        >
+                            Edit
+                        </Button>
+                    </Tooltip>
+                    <Tooltip title="Delete Project">
+                        <Button
+                            variant="contained"
+                            color="secondary"
+                            onClick={() => handleDelete(project)}
+                            size="small"
+                        >
+                            Delete
+                        </Button>
+                    </Tooltip>
+                </div>
             </TableCell>
         </TableRow>
     );
