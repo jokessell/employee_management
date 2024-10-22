@@ -49,6 +49,7 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
         dateOfBirth: Yup.date()
             .required('Date of Birth is required'),
         avatarUrl: Yup.string()
+            .transform((value, originalValue) => originalValue === '' ? null : value)
             .url('Invalid URL format')
             .nullable(),
         jobRole: Yup.string()
