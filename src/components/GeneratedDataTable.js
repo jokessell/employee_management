@@ -1,5 +1,3 @@
-// src/components/GeneratedDataTable.js
-
 import React, { useState } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer,
@@ -14,8 +12,20 @@ function GeneratedDataTable() {
     const location = useLocation();
     const navigate = useNavigate();
 
+    // This is where we will parse the incoming data properly
     const { generatedData, topic, prompt, recordCount } = location.state || {};
-    const [data, setData] = useState(generatedData || []);
+    const [data, setData] = useState(() => {
+        try {
+            // Parse the generatedData if it's a JSON string
+            return Array.isArray(generatedData)
+                ? generatedData.map((item) => (typeof item === 'string' ? JSON.parse(item) : item))
+                : [];
+        } catch (error) {
+            console.error("Failed to parse generated data", error);
+            return [];
+        }
+    });
+
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
@@ -47,12 +57,14 @@ function GeneratedDataTable() {
 
             let newGeneratedData = null;
 
+            // Ensure response data is properly parsed
             if (Array.isArray(response.data)) {
-                if (typeof response.data[0] === 'string') {
-                    newGeneratedData = response.data.map((item) => JSON.parse(item));
-                } else {
-                    newGeneratedData = response.data;
-                }
+                newGeneratedData = response.data.map((item) => {
+                    if (typeof item === 'string') {
+                        return JSON.parse(item); // Parse each item if it's a JSON string
+                    }
+                    return item;
+                });
             } else {
                 console.error("Unexpected response format", response.data);
                 setSnackbarMessage('Failed to generate more data: Invalid format');
@@ -143,8 +155,8 @@ function GeneratedDataTable() {
                                             variants={tableRowVariants}
                                             transition={{ duration: 0.3 }}
                                         >
-                                            {Object.values(record).map((value, i) => (
-                                                <TableCell key={i}>{value}</TableCell>
+                                            {Object.keys(record).map((key, i) => (
+                                                <TableCell key={i}>{record[key]}</TableCell>
                                             ))}
                                         </motion.tr>
                                     ))}
