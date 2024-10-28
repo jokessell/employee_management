@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import BuildIcon from '@mui/icons-material/Build';
 import WorkIcon from '@mui/icons-material/Work';
+import CheckIcon from '@mui/icons-material/Check'; // Import the checkmark icon
 import EmployeeForm from './EmployeeForm';
 import ConfirmDialog from './ConfirmDialog';
 import { getAllEmployees, deleteEmployee } from '../api/employeeApi';
@@ -33,6 +34,8 @@ function EmployeeTable() {
     // New state variables for sorting
     const [order, setOrder] = useState('asc'); // 'asc' or 'desc'
     const [orderBy, setOrderBy] = useState('employeeId'); // Default sort by employeeId
+    const [hoveredProjectId, setHoveredProjectId] = useState(null);
+    const [hoveredProjectSkills, setHoveredProjectSkills] = useState([]);
 
     // Fetch employees with pagination and sorting
     const fetchEmployees = useCallback(async () => {
@@ -112,6 +115,16 @@ function EmployeeTable() {
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
+    };
+
+    const handleProjectHover = (projectId, projectSkills) => {
+        setHoveredProjectId(projectId);
+        setHoveredProjectSkills(projectSkills);
+    };
+
+    const handleProjectLeave = () => {
+        setHoveredProjectId(null);
+        setHoveredProjectSkills([]);
     };
 
     // Loading state
@@ -343,6 +356,13 @@ function EmployeeTable() {
                                                         size="small"
                                                         className={classes.chip}
                                                         icon={<BuildIcon style={{ fontSize: '1rem' }} />}
+                                                        style={
+                                                            hoveredProjectSkills.some(
+                                                                (pSkill) => pSkill.skillId === skill.skillId
+                                                            )
+                                                                ? { backgroundColor: 'lightgreen' }
+                                                                : {}
+                                                        }
                                                     />
                                                 ))}
                                             </Stack>
@@ -362,20 +382,77 @@ function EmployeeTable() {
                                                 sx={{ rowGap: '5px' }}
                                             >
                                                 {employee.projects.map((project) => (
-                                                    <Chip
+                                                    <Tooltip
                                                         key={project.projectId}
-                                                        label={project.projectName || project.name}
-                                                        variant="outlined"
-                                                        size="small"
-                                                        className={classes.chip}
-                                                        icon={<WorkIcon style={{ fontSize: '1rem' }} />}
-                                                    />
+                                                        title={
+                                                            <div>
+                                                                Required Skills:
+                                                                <ul style={{ paddingLeft: '15px', margin: 0 }}>
+                                                                    {project.skills.map((skill) => (
+                                                                        <li
+                                                                            key={skill.skillId}
+                                                                            style={{ display: 'flex', alignItems: 'center' }}
+                                                                        >
+                                                                            {employee.skills.some(
+                                                                                (eSkill) => eSkill.skillId === skill.skillId
+                                                                            ) && (
+                                                                                <CheckIcon
+                                                                                    style={{
+                                                                                        fontSize: '1rem',
+                                                                                        marginRight: '4px',
+                                                                                        color: 'green',
+                                                                                    }}
+                                                                                />
+                                                                            )}
+                                                                            {skill.name}
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        }
+                                                        placement="bottom"
+                                                        arrow
+                                                        componentsProps={{
+                                                            tooltip: {
+                                                                sx: {
+                                                                    fontSize: '1em', // Increase font size
+                                                                    backgroundColor: 'rgba(0, 0, 0, 0.8)', // More opaque background
+                                                                    padding: 2, // Increase padding
+                                                                    maxWidth: 'none', // Remove max-width restriction
+                                                                },
+                                                            },
+                                                            arrow: {
+                                                                sx: {
+                                                                    color: 'rgba(0, 0, 0, 0.9)', // Match tooltip background color
+                                                                },
+                                                            },
+                                                        }}
+                                                    >
+                                                        <Chip
+                                                            key={project.projectId}
+                                                            label={project.projectName || project.name}
+                                                            variant="outlined"
+                                                            size="small"
+                                                            className={classes.chip}
+                                                            icon={<WorkIcon style={{ fontSize: '1rem' }} />}
+                                                            onMouseEnter={() =>
+                                                                handleProjectHover(project.projectId, project.skills)
+                                                            }
+                                                            onMouseLeave={handleProjectLeave}
+                                                            style={
+                                                                hoveredProjectId === project.projectId
+                                                                    ? { backgroundColor: 'lightblue' }
+                                                                    : {}
+                                                            }
+                                                        />
+                                                    </Tooltip>
                                                 ))}
                                             </Stack>
                                         ) : (
                                             'None'
                                         )}
                                     </TableCell>
+
 
                                     {/* Actions Cell */}
                                     <TableCell align="right" className={classes.tableCell}>
