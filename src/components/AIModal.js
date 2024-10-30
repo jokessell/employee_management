@@ -32,7 +32,7 @@ function AIModal({ open, onClose, onGenerate }) {
                     setProgressValue(steps[currentStep].progress);
                     currentStep++;
                 }
-            }, 1000); // Every 1 second
+            }, 3000); // Every 3 seconds
 
             return () => clearInterval(progressInterval);
         }

@@ -12,9 +12,12 @@ import {
 import FaceIcon from '@mui/icons-material/Face';
 import BuildIcon from '@mui/icons-material/Build';
 
-function ProjectRow({ project, handleEdit, handleDelete, classes }) {
+function ProjectRow({ project, handleEdit, handleDelete, classes, authRoles }) {
     const [hoveredEmployeeId, setHoveredEmployeeId] = useState(null);
     const [hoveredSkillId, setHoveredSkillId] = useState(null);
+
+    // Check if the user has permission to edit/delete
+    const canEdit = authRoles.includes('ELEVATED') || authRoles.includes('ADMIN');
 
     // Event handlers for employee chips
     const handleEmployeeMouseEnter = (employeeId) => {
@@ -120,7 +123,6 @@ function ProjectRow({ project, handleEdit, handleDelete, classes }) {
 
             {/* Actions Column */}
             <TableCell align="right" className={classes.tableCell}>
-                {/* Flex container for buttons */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <Tooltip title="Edit Project">
                         <Button
@@ -129,6 +131,7 @@ function ProjectRow({ project, handleEdit, handleDelete, classes }) {
                             onClick={() => handleEdit(project)}
                             size="small"
                             style={{ marginRight: '8px' }}
+                            disabled={!canEdit}
                         >
                             Edit
                         </Button>
@@ -139,6 +142,7 @@ function ProjectRow({ project, handleEdit, handleDelete, classes }) {
                             color="secondary"
                             onClick={() => handleDelete(project)}
                             size="small"
+                            disabled={!canEdit}
                         >
                             Delete
                         </Button>

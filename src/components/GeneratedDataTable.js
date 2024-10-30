@@ -1,3 +1,4 @@
+// src/components/GeneratedDataTable.js
 import React, { useState } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer,
@@ -12,7 +13,7 @@ function GeneratedDataTable() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // This is where we will parse the incoming data properly
+    // Parse incoming data
     const { generatedData, topic, prompt, recordCount } = location.state || {};
     const [data, setData] = useState(() => {
         try {
@@ -197,6 +198,7 @@ function GeneratedDataTable() {
             </div>
         </div>
     )
+
 }
 
 export default GeneratedDataTable;

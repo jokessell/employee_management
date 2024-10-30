@@ -1,6 +1,5 @@
 // src/components/EmployeeTable.js
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, Button, Tooltip,
@@ -9,14 +8,19 @@ import {
 } from '@mui/material';
 import BuildIcon from '@mui/icons-material/Build';
 import WorkIcon from '@mui/icons-material/Work';
-import CheckIcon from '@mui/icons-material/Check'; // Import the checkmark icon
+import CheckIcon from '@mui/icons-material/Check';
 import EmployeeForm from './EmployeeForm';
 import ConfirmDialog from './ConfirmDialog';
 import { getAllEmployees, deleteEmployee } from '../api/employeeApi';
 import useStyles from '../styles/tableStyles';
+import { AuthContext } from '../context/AuthContext';
 
 function EmployeeTable() {
     const classes = useStyles();
+    const { auth } = useContext(AuthContext);
+
+    // Role-based permissions
+    const canEdit = auth.roles.includes('ELEVATED') || auth.roles.includes('ADMIN');
 
     // State variables
     const [employees, setEmployees] = useState([]);
@@ -150,6 +154,7 @@ function EmployeeTable() {
                     className={classes.addButton}
                     onClick={handleAdd}
                     size="small"
+                    disabled={!canEdit}
                 >
                     Add Employee
                 </Button>
@@ -160,12 +165,7 @@ function EmployeeTable() {
                 <Table size="small" stickyHeader>
                     <TableHead>
                         <TableRow className={classes.tableHeader}>
-                            {/* Adjusted column widths and styles */}
-                            {/* ID Column */}
-                            <TableCell
-                                className={classes.tableCell}
-                                style={{ width: '50px' }}
-                            >
+                            <TableCell style={{ width: '50px' }}>
                                 <TableSortLabel
                                     active={orderBy === 'employeeId'}
                                     direction={orderBy === 'employeeId' ? order : 'asc'}
@@ -275,11 +275,7 @@ function EmployeeTable() {
                             </TableCell>
 
                             {/* Actions Column */}
-                            <TableCell
-                                align="right"
-                                className={classes.tableCell}
-                                style={{ width: '150px' }}
-                            >
+                            <TableCell align="right" style={{ width: '150px' }}>
                                 <strong>Actions</strong>
                             </TableCell>
                         </TableRow>
@@ -288,10 +284,7 @@ function EmployeeTable() {
                         {employees.length > 0 ? (
                             employees.map((employee) => (
                                 <TableRow key={employee.employeeId} className={classes.tableRow}>
-                                    {/* ID Cell */}
-                                    <TableCell className={classes.tableCell}>
-                                        {employee.employeeId}
-                                    </TableCell>
+                                    <TableCell>{employee.employeeId}</TableCell>
 
                                     {/* Avatar Cell */}
                                     <TableCell className={classes.tableCell}>
@@ -415,15 +408,15 @@ function EmployeeTable() {
                                                         componentsProps={{
                                                             tooltip: {
                                                                 sx: {
-                                                                    fontSize: '1em', // Increase font size
-                                                                    backgroundColor: 'rgba(0, 0, 0, 0.8)', // More opaque background
-                                                                    padding: 2, // Increase padding
-                                                                    maxWidth: 'none', // Remove max-width restriction
+                                                                    fontSize: '1em',
+                                                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                                                    padding: 2,
+                                                                    maxWidth: 'none',
                                                                 },
                                                             },
                                                             arrow: {
                                                                 sx: {
-                                                                    color: 'rgba(0, 0, 0, 0.9)', // Match tooltip background color
+                                                                    color: 'rgba(0, 0, 0, 0.9)',
                                                                 },
                                                             },
                                                         }}
@@ -455,8 +448,7 @@ function EmployeeTable() {
 
 
                                     {/* Actions Cell */}
-                                    <TableCell align="right" className={classes.tableCell}>
-                                        {/* Flex container for buttons */}
+                                    <TableCell align="right">
                                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                             <Tooltip title="Edit Employee">
                                                 <Button
@@ -465,6 +457,7 @@ function EmployeeTable() {
                                                     onClick={() => handleEdit(employee)}
                                                     size="small"
                                                     style={{ marginRight: '8px' }}
+                                                    disabled={!canEdit}
                                                 >
                                                     Edit
                                                 </Button>
@@ -475,6 +468,7 @@ function EmployeeTable() {
                                                     color="secondary"
                                                     onClick={() => handleDelete(employee)}
                                                     size="small"
+                                                    disabled={!canEdit}
                                                 >
                                                     Delete
                                                 </Button>

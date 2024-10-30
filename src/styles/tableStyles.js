@@ -1,5 +1,4 @@
 // src/styles/tableStyles.js
-
 import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles(() => ({

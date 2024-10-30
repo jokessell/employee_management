@@ -1,20 +1,29 @@
-import React, { useState, useEffect } from 'react';
+// src/components/EmployeeForm.js
+import React, { useState, useEffect, useContext } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
-    TextField, Button, MenuItem, Typography, Avatar, Autocomplete
+    TextField, Button, MenuItem, Typography, Avatar, Autocomplete, Snackbar
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axiosInstance from '../api/axiosConfig';
 import { getAllSkills } from '../api/skillApi';
-import useStyles from '../styles/tableStyles'; // Import shared styles
+import { getAllProjects } from '../api/projectApi';
+import useStyles from '../styles/tableStyles';
+import { AuthContext } from '../context/AuthContext';
 
-function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackbarMessage }) {
-    const classes = useStyles(); // Initialize styles
+function EmployeeForm({ open, handleClose, employee }) {
+    const classes = useStyles();
+    const { auth } = useContext(AuthContext);
+
+    // Define snackbar state
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
 
     // State for form fields
     const [avatarPreview, setAvatarPreview] = useState('');
     const [skills, setSkills] = useState([]);
+    const [projects, setProjects] = useState([]);
 
     useEffect(() => {
         if (employee && employee.avatarUrl) {
@@ -37,9 +46,30 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                 setSkills(skillsArray);
             } catch (error) {
                 console.error('Error fetching skills:', error);
+                setSnackbarMessage('Failed to fetch skills.');
+                setSnackbarOpen(true);
             }
         };
+
+        // Fetch projects to populate the multi-select
+        const fetchProjects = async () => {
+            try {
+                const response = await getAllProjects({
+                    page: 0,
+                    size: 1000,
+                    sort: 'projectName,asc',
+                });
+                const projectsArray = response.data.content || [];
+                setProjects(projectsArray);
+            } catch (error) {
+                console.error('Error fetching projects:', error);
+                setSnackbarMessage('Failed to fetch projects.');
+                setSnackbarOpen(true);
+            }
+        };
+
         fetchSkills();
+        fetchProjects();
     }, []);
 
     const validationSchema = Yup.object({
@@ -65,6 +95,14 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                 })
             )
             .min(1, 'At least one skill must be selected'),
+        projects: Yup.array()
+            .of(
+                Yup.object().shape({
+                    projectId: Yup.number().required(),
+                    projectName: Yup.string().required(),
+                })
+            )
+            .nullable(),
     });
 
     const formik = useFormik({
@@ -79,6 +117,10 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                 skillId: skill.skillId,
                 name: skill.name,
             })) : [],
+            projects: employee ? employee.projects.map(project => ({
+                projectId: project.projectId,
+                projectName: project.projectName || project.name,
+            })) : [],
         },
         validationSchema: validationSchema,
         enableReinitialize: true,
@@ -90,8 +132,8 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                     avatarUrl: values.avatarUrl,
                     jobRole: values.jobRole,
                     gender: values.gender,
-                    projectIds: employee ? employee.projectIds : [], // Preserve existing projects if editing
                     skillIds: values.skills.map(skill => skill.skillId),
+                    projectIds: values.projects.map(project => project.projectId),
                 };
 
                 if (employee) {
@@ -231,6 +273,27 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                             />
                         )}
                     />
+                    {/* Multi-select Autocomplete for Projects */}
+                    <Autocomplete
+                        multiple
+                        id="projects"
+                        options={projects}
+                        getOptionLabel={(option) => option.projectName || option.name}
+                        value={formik.values.projects}
+                        onChange={(event, newValue) => {
+                            formik.setFieldValue('projects', newValue);
+                        }}
+                        filterSelectedOptions
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Assign Projects"
+                                margin="dense"
+                                error={formik.touched.projects && Boolean(formik.errors.projects)}
+                                helperText={formik.touched.projects && formik.errors.projects}
+                            />
+                        )}
+                    />
                 </form>
             </DialogContent>
             <DialogActions>
@@ -239,11 +302,17 @@ function EmployeeForm({ open, handleClose, employee, setSnackbarOpen, setSnackba
                     onClick={formik.handleSubmit}
                     variant="contained"
                     color="primary"
-                    disabled={!(formik.isValid && formik.dirty)}
+                    disabled={!(formik.isValid && formik.dirty) || !(auth.roles.includes('ELEVATED') || auth.roles.includes('ADMIN'))}
                 >
                     {employee ? 'Update' : 'Add'}
                 </Button>
             </DialogActions>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={() => setSnackbarOpen(false)}
+                message={snackbarMessage}
+            />
         </Dialog>
     );
 }

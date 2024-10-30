@@ -1,6 +1,5 @@
 // src/components/ProjectTable.js
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, Button,
@@ -12,9 +11,14 @@ import ConfirmDialog from './ConfirmDialog';
 import { getAllProjects, deleteProject } from '../api/projectApi';
 import useStyles from '../styles/tableStyles';
 import ProjectRow from './ProjectRow';
+import { AuthContext } from '../context/AuthContext';
 
 function ProjectTable() {
     const classes = useStyles();
+    const { auth } = useContext(AuthContext);
+
+    // Role-based permissions
+    const canEdit = auth.roles.includes('ELEVATED') || auth.roles.includes('ADMIN');
 
     // State variables
     const [projects, setProjects] = useState([]);
@@ -57,6 +61,14 @@ function ProjectTable() {
     useEffect(() => {
         fetchProjects();
     }, [fetchProjects]);
+
+    // Sorting handler
+    const handleRequestSort = (property) => {
+        const isAsc = orderBy === property && order === 'asc';
+        setOrder(isAsc ? 'desc' : 'asc');
+        setOrderBy(property);
+        setPage(0); // Reset to first page on sort
+    };
 
     // Handlers
     const handleAdd = () => {
@@ -105,14 +117,6 @@ function ProjectTable() {
         setPage(0);
     };
 
-    // Sorting handler
-    const handleRequestSort = (property) => {
-        const isAsc = orderBy === property && order === 'asc';
-        setOrder(isAsc ? 'desc' : 'asc');
-        setOrderBy(property);
-        setPage(0); // Reset to first page on sort
-    };
-
     // Loading state
     if (loading) {
         return (
@@ -123,7 +127,7 @@ function ProjectTable() {
     }
 
     return (
-        <div style={{ padding: '20px' }}> {/* Reduced padding */}
+        <div style={{ padding: '20px' }}>
             {/* Title */}
             <Typography variant="h5" align="center" gutterBottom>
                 Project Management
@@ -135,7 +139,8 @@ function ProjectTable() {
                     variant="contained"
                     className={classes.addButton}
                     onClick={handleAdd}
-                    size="small" // Smaller button size
+                    size="small"
+                    disabled={!canEdit}
                 >
                     Add Project
                 </Button>
@@ -217,6 +222,7 @@ function ProjectTable() {
                                     handleEdit={handleEdit}
                                     handleDelete={handleDelete}
                                     classes={classes}
+                                    authRoles={auth.roles} // Pass user roles
                                 />
                             ))
                         ) : (
